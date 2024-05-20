@@ -1,7 +1,9 @@
-import { View, StyleSheet, Image, Text, TextInput, Button } from "react-native";
+import { View, StyleSheet, Image, Text, TextInput, Button, Alert } from "react-native";
 import { useFonts, JosefinSans_700Bold } from '@expo-google-fonts/josefin-sans';
 import { Kanit_400Regular, Kanit_500Medium, Kanit_700Bold } from '@expo-google-fonts/kanit';
 import { useNavigation } from '@react-navigation/native';
+import { useState } from 'react';
+import axios from 'axios';
 
 
 function Login() {
@@ -13,7 +15,31 @@ function Login() {
     Kanit_500Medium, 
     Kanit_700Bold
  });
- 
+
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post('http://localhost:3030/login', {
+        email,
+        senha
+      });
+  
+      if (response.status === 200) {
+        Alert.alert('Sucesso', 'Login bem-sucedido!');
+        navigation.navigate('PlanCh');
+      } else {
+        Alert.alert('Erro', response.data.message);
+      }
+    } catch (error) {
+      Alert.alert('Erro', 'Erro ao realizar login');
+    }
+  };
+  
+  
+
+
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
@@ -30,17 +56,22 @@ function Login() {
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>CNPJ ou Email</Text>
           <View style={styles.inputField}>
-            <TextInput style={styles.input}/>
+            <TextInput style={styles.input} 
+              value={email}
+              onChangeText={setEmail}/>
           </View>
         </View>
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>Senha</Text>
           <View style={styles.inputField}>
-            <TextInput style={styles.input}/>
+            <TextInput style={styles.input} 
+            value={senha}
+            onChangeText={setSenha}
+            secureTextEntry/>
           </View>
         </View>
         <View style={styles.buttonContainer}>
-          <Button style={styles.button} title="Login"  onPress={() => navigation.navigate('loginPlano')}/>
+          <Button style={styles.button} title="Login" onPress={handleLogin}/>
         </View>
       </View>
     </View>

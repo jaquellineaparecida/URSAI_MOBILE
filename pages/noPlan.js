@@ -1,7 +1,8 @@
-import {  View, StyleSheet, Text, ScrollView } from "react-native";
+import {  View, StyleSheet, Text, ScrollView, TouchableOpacity } from "react-native";
 import { useFonts, Kanit_500Medium } from '@expo-google-fonts/kanit';
 import { Nunito_700Bold } from  '@expo-google-fonts/nunito';
 import { useNavigation } from '@react-navigation/native';
+import { useState } from 'react';
 
 function Knowing() {
   const navigation = useNavigation();
@@ -11,6 +12,15 @@ function Knowing() {
     Nunito_700Bold
  });
 
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [selectedPreco, setSelectPreco] = useState(null);
+
+  const handleSelectPlan = (plano, preco) => {
+    setSelectedPlan(plano);
+    setSelectPreco(preco);
+    navigation.navigate('Pagamento', { selectedPlan: plano, planPrice: preco });
+  };
+
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -18,53 +28,85 @@ function Knowing() {
           <Text style={styles.headerText}>Bem-vindo de volta, Fulano! </Text>
         </View>
         <View style={styles.container2}>
-          <Text style={styles.contText}> Escolha um dos planos abaixo e venda uma nova experiência para os seus clientes!
-        </Text>
+          <Text style={styles.contText}>
+            {" "}
+            Escolha um dos planos abaixo e venda uma nova experiência para os seus clientes!{" "}
+          </Text>
         </View>
-        <View style={styles.planContainer}>
-          <View>
-            <Text style={styles.planTitleText}>Plano Básico</Text>
+        <TouchableOpacity onPress={() => handleSelectPlan("Plano Básico", "R$ 49.99/mês")}>
+          <View
+            style={[styles.planContainer, selectedPlan === "Plano Básico" && styles.selectedPlan]}
+          >
+            <View>
+              <Text style={styles.planTitleText}>Plano Básico</Text>
+            </View>
+            <View>
+              <Text style={styles.planDescription}>
+                • Recomendações personalizadas com base no histórico de compras do cliente
+              </Text>
+              <Text style={styles.planDescription}>• Suporte por email</Text>
+              <Text style={styles.planDescription}>• Até 1000 recomendações por mês</Text>
+            </View>
+            <View>
+              <Text style={styles.planPrice}>R$ 49.99/mês</Text>
+            </View>
           </View>
-          <View>
-            <Text style={styles.planDescription}>• Recomendações personalizadas com base no histórico de compras do cliente</Text>
-            <Text style={styles.planDescription}>• Suporte por email</Text>
-            <Text style={styles.planDescription}>• Até 1000 recomendações por mês</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleSelectPlan("Plano Padrão", "R$ 150.00/mês")}>
+          <View
+            style={[styles.planContainer, selectedPlan === "Plano Padrão" && styles.selectedPlan]}
+          >
+            <View>
+              <Text style={styles.planTitleText}>Plano Padrão</Text>
+            </View>
+            <View>
+              <Text style={styles.planDescription}>
+                • Recomendações personalizadas com base no histórico de compras do cliente e
+                favoritos.
+              </Text>
+              <Text style={styles.planDescription}>• Acesso limitado a análises básicas</Text>
+              <Text style={styles.planDescription}>• Suporte por email e chat.</Text>
+              <Text style={styles.planDescription}>• Até 5000 recomendações por mês</Text>
+            </View>
+            <View>
+              <Text style={styles.planPrice}>R$ 150.00/mês</Text>
+            </View>
           </View>
-          <View>
-            <Text style={styles.planPrice}>R$ 49.99/mês</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleSelectPlan("Plano Premium", "R$ 299.00/mês")}>
+          <View
+            style={[
+              styles.planContainer,
+              selectedPlan === "Plano Premium" && styles.selectedPlan,
+            ]}
+          >
+            <View>
+              <Text style={styles.planTitleText}>Plano Premium</Text>
+            </View>
+            <View>
+              <Text style={styles.planDescription}>
+                • Recomendações altamente personalizadas com base no histórico de compras,
+                comportamento de navegação, favoritos e análise preditiva.
+              </Text>
+              <Text style={styles.planDescription}>• Suporte por email, chat e telefone</Text>
+              <Text style={styles.planDescription}>• Até 20000 recomendações por mês</Text>
+              <Text style={styles.planDescription}>
+                • Acesso a análises avançadas e relatórios personalizados
+              </Text>
+              <Text style={styles.planDescription}>• Customização avançada e consultoria estratégica</Text>
+            </View>
+            <View>
+              <Text style={styles.planPrice}>R$ 299.00/mês</Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.planContainer}>
-          <View>
-            <Text style={styles.planTitleText}>Plano Padrão</Text>
-          </View>
-          <View>
-            <Text style={styles.planDescription}>• Recomendações personalizadas com base no histórico de compras do cliente e favoritos.</Text>
-            <Text style={styles.planDescription}>• Acesso limitado a análises básicas</Text>
-            <Text style={styles.planDescription}>• Suporte por email e chat.</Text>
-            <Text style={styles.planDescription}>• Até 5000 recomendações por mês</Text>
-          </View>
-          <View>
-            <Text style={styles.planPrice}>R$ 150.00/mês</Text>
-          </View>
-        </View>
-        <View style={styles.planContainer}>
-          <View>
-            <Text style={styles.planTitleText}>Plano Premium</Text>
-          </View>
-          <View>
-            <Text style={styles.planDescription}>• Recomendações altamente personalizadas com base no histórico de compras, comportamento de navegação, favoritos e análise preditiva.</Text>
-            <Text style={styles.planDescription}>• Suporte por email, chat e telefone</Text>
-            <Text style={styles.planDescription}>• Até 20000 recomendações por mês</Text>
-            <Text style={styles.planDescription}>• Acesso a análises avançadas e relatórios personalizados</Text>
-            <Text style={styles.planDescription}>• Customização avançada e consultoria estratégica</Text>
-          </View>
-          <View>
-            <Text style={styles.planPrice}>R$ 299.00/mês</Text>
-          </View>
-        </View>
+        </TouchableOpacity>
         <View style={styles.subscribeButton}>
-          <Text style={styles.subscribeButtonText} onPress={() => navigation.navigate('Pagamento')}>Comprar!</Text>
+          <Text
+            style={styles.subscribeButtonText}
+            onPress={() => navigation.navigate("Pagamento", { selectedPlan, selectedPreco })}
+          >
+            Comprar!
+          </Text>
         </View>
       </View>
     </ScrollView>
