@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { ScrollView, View, StyleSheet, Text, TextInput, Modal, TouchableOpacity } from 'react-native';
+import { ScrollView, View, StyleSheet, Text, TextInput, TouchableOpacity, Modal, Pressable } from 'react-native';
 import { useFonts, Kanit_400Regular, Kanit_500Medium, Kanit_700Bold } from '@expo-google-fonts/kanit';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 
 function Pagamento() {
@@ -9,37 +9,34 @@ function Pagamento() {
     Kanit_400Regular, Kanit_500Medium, Kanit_700Bold
   });
 
+  const navigation = useNavigation();
   const route = useRoute();
-  const { selectedPlan, planPrice } = route.params;
-  const [modalVisible, setModalVisible] = useState(false);
+  const { selectedPlan, selectedPreco, selectedPlanId } = route.params;
+
   const [nomeCartao, setNomeCartao] = useState('');
   const [nrmCartao, setNrmCartao] = useState('');
-  const [cnpj, setCnpj] = useState('');
   const [dataValidade, setDataValidade] = useState('');
   const [cvv, setCvv] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const handleFinalizar = async () => {
+  const handlePayment = async () => {
     try {
-      const response = await axios.post('http://localhost:3030/finalizarPagamento', {
-        idEmpresa: 1, // Substitua pelo ID da empresa do usuário
-        idPlano: 1, // Substitua pelo ID do plano escolhido
+      const response = await axios.put('http://localhost:3030/pagamento', {
+        email: userEmail,
+        idPlano: selectedPlanId,
         nomeCartao,
         nrmCartao,
         dataValidade,
         cvv,
-        total: planPrice,
+        total: selectedPreco
       });
-
       if (response.status === 201) {
-        // Se o pagamento for bem-sucedido, exiba o modal
         setModalVisible(true);
-      } else {
-        // Se houver algum erro no pagamento, exiba uma mensagem de erro
-        alert('Erro ao finalizar pagamento. Por favor, tente novamente.');
       }
     } catch (error) {
-      console.error('Erro ao finalizar pagamento:', error);
-      alert('Erro ao finalizar pagamento. Por favor, tente novamente.');
+      console.error('Erro ao realizar pagamento', error);
+      alert('Erro ao realizar pagamento. Tente novamente.');
     }
   };
 
@@ -70,11 +67,11 @@ function Pagamento() {
           />
         </View>
         <View style={styles.inputField}>
-          <Text style={styles.label}>CNPJ</Text>
+          <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.inputBox}
-            value={cnpj}
-            onChangeText={setCnpj}
+            value={userEmail}
+            onChangeText={setUserEmail}
           />
         </View>
         <View style={styles.row}>
@@ -97,34 +94,36 @@ function Pagamento() {
         </View>
         <View style={styles.totalContainer}>
           <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.planPrice}>{planPrice}</Text>
+          <Text style={styles.planPrice}>{selectedPreco}</Text>
         </View>
-        <TouchableOpacity style={styles.buttonContainer} onPress={handleFinalizar}>
+        <TouchableOpacity style={styles.buttonContainer} onPress={handlePayment}>
           <Text style={styles.buttonText}>Finalizar</Text>
         </TouchableOpacity>
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(false);
-          }}
-        >
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <Text style={styles.modalText}>Compra finalizada com sucesso!</Text>
-              <TouchableOpacity
-                style={{ ...styles.button, backgroundColor: '#2196F3' }}
-                onPress={() => {
-                  setModalVisible(!modalVisible);
-                }}
-              >
-                <Text style={styles.buttonText}>Fechar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
       </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Pagamento realizado com sucesso!</Text>
+            <Pressable
+              style={[styles.button, styles.buttonClose]}
+              onPress={() => {
+                setModalVisible(!modalVisible);
+                navigation.navigate('LoginPlano', { selectedPlan });
+              }}
+            >
+              <Text style={styles.textStyle}>OK</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -244,6 +243,19 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: 'center',
     fontFamily: 'Kanit_400Regular',
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center'
   },
 });
 

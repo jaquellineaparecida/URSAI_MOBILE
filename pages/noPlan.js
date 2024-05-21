@@ -13,13 +13,23 @@ function Knowing() {
  });
 
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const [selectedPreco, setSelectPreco] = useState(null);
+  const [selectedPreco, setSelectedPreco] = useState(null);
+  const [selectedPlanId, setSelectedPlanId] = useState(null);
 
-  const handleSelectPlan = (plano, preco) => {
+  const handleSelectPlan = (plano, preco, idPlano) => {
     setSelectedPlan(plano);
-    setSelectPreco(preco);
-    navigation.navigate('Pagamento', { selectedPlan: plano, planPrice: preco });
+    setSelectedPreco(preco);
+    setSelectedPlanId(idPlano);
   };
+
+  const handleNavigateToPayment = () => {
+    if (selectedPlan) {
+      navigation.navigate('Pagamento', { selectedPlan, selectedPreco, selectedPlanId });
+    } else {
+      console.log('Por favor, selecione um plano antes de prosseguir para o pagamento.');
+    }
+  };
+
 
   return (
     <ScrollView>
@@ -33,7 +43,7 @@ function Knowing() {
             Escolha um dos planos abaixo e venda uma nova experiência para os seus clientes!{" "}
           </Text>
         </View>
-        <TouchableOpacity onPress={() => handleSelectPlan("Plano Básico", "R$ 49.99/mês")}>
+        <TouchableOpacity onPress={() => handleSelectPlan("Plano Básico", 49.99, 1)}>
           <View
             style={[styles.planContainer, selectedPlan === "Plano Básico" && styles.selectedPlan]}
           >
@@ -52,7 +62,7 @@ function Knowing() {
             </View>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleSelectPlan("Plano Padrão", "R$ 150.00/mês")}>
+        <TouchableOpacity onPress={() => handleSelectPlan("Plano Padrão", 150.00, 2)}>
           <View
             style={[styles.planContainer, selectedPlan === "Plano Padrão" && styles.selectedPlan]}
           >
@@ -73,7 +83,7 @@ function Knowing() {
             </View>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleSelectPlan("Plano Premium", "R$ 299.00/mês")}>
+        <TouchableOpacity onPress={() => handleSelectPlan("Plano Premium", 299.00, 3)}>
           <View
             style={[
               styles.planContainer,
@@ -103,7 +113,7 @@ function Knowing() {
         <View style={styles.subscribeButton}>
           <Text
             style={styles.subscribeButtonText}
-            onPress={() => navigation.navigate("Pagamento", { selectedPlan, selectedPreco })}
+            onPress={handleNavigateToPayment}
           >
             Comprar!
           </Text>

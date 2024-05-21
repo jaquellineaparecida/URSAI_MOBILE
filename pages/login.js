@@ -1,23 +1,23 @@
-import { View, StyleSheet, Image, Text, TextInput, Button, Alert } from "react-native";
+import React, { useState } from "react";
+import { View, StyleSheet, Image, Text, TextInput, Button, Alert, Modal } from "react-native";
 import { useFonts, JosefinSans_700Bold } from '@expo-google-fonts/josefin-sans';
 import { Kanit_400Regular, Kanit_500Medium, Kanit_700Bold } from '@expo-google-fonts/kanit';
 import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
 import axios from 'axios';
-
 
 function Login() {
   const navigation = useNavigation();
-  
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+
   let [fontsLoaded] = useFonts({
     JosefinSans_700Bold,
     Kanit_400Regular,
     Kanit_500Medium, 
     Kanit_700Bold
- });
-
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+  });
 
   const handleLogin = async () => {
     try {
@@ -36,9 +36,24 @@ function Login() {
       Alert.alert('Erro', 'Erro ao realizar login');
     }
   };
-  
-  
 
+  const handleForgotPassword = async () => {
+    try {
+      const response = await axios.update('http://localhost:3030/resetPassword', {
+        email,
+        newPassword
+      });
+  
+      if (response.status === 200) {
+        Alert.alert('Sucesso', 'Senha redefinida com sucesso!');
+        setShowForgotPasswordModal(false);
+      } else {
+        Alert.alert('Erro', response.data.message);
+      }
+    } catch (error) {
+      Alert.alert('Erro', 'Erro ao redefinir senha');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -70,10 +85,35 @@ function Login() {
             secureTextEntry/>
           </View>
         </View>
+        <View style={styles.checkboxContainer}>
+          <Text style={styles.checkboxLabel}>Esqueci a senha</Text>
+          <Button title="Redefinir Senha" onPress={() => setShowForgotPasswordModal(true)} />
+        </View>
         <View style={styles.buttonContainer}>
           <Button style={styles.button} title="Login" onPress={handleLogin}/>
         </View>
       </View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showForgotPasswordModal}
+        onRequestClose={() => setShowForgotPasswordModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Redefinir Senha</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              placeholder="Nova senha"
+              secureTextEntry
+            />
+            <Button title="Redefinir Senha" onPress={handleForgotPassword} />
+            <Button title="Cancelar" onPress={() => setShowForgotPasswordModal(false)} />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -144,7 +184,47 @@ const styles = StyleSheet.create({
     fontFamily: "Kanit_500Medium",
     fontWeight: 'bold',
     backgroundColor: "#fff"
-  }
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  checkboxLabel: {
+    color: '#FFF',
+    fontSize: 16,
+    fontFamily: 'Kanit_400Regular',
+    marginRight: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#FFF',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    marginBottom: 10,
+    fontFamily: 'Kanit_500Medium',
+  },
+  modalInput: {
+    width: '100%',
+    height: 40,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+  },
 });
 
 export default Login;
+
+   

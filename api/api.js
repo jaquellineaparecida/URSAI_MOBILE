@@ -2,6 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const oracledb = require('oracledb');
+const axios = require('axios');
+
 
 const app = express();
 const port = 3030;
@@ -9,7 +11,7 @@ const port = 3030;
 app.use(cors({
   origin: '*'
 }));
-app.use(bodyParser.json());
+app.use(express.json());
 
 async function connect() {
   return await oracledb.getConnection({
@@ -81,24 +83,88 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Endpoint para finalizar o pagamento
-app.post('/finalizarPagamento', async (req, res) => {
-  const { idEmpresa, idPlano, nomeCartao, nrmCartao, dataValidade, cvv, total } = req.body;
+app.put('/pagamento', async (req, res) => {
+  console.log("Recebida uma solicitação POST na rota /pagamento");
+  console.log("Dados recebidos:", req.body);
+  const { email, idPlano, nomeCartao, nrmCartao, dataValidade, cvv, total } = req.body;
   let connection;
 
   try {
+    console.log("Tentando conectar ao banco de dados...");
     connection = await connect();
-    const result = await connection.execute(
+    console.log("Conectado ao banco de dados.");
+
+    // Buscar ID da empresa baseado no email
+    const userResult = await connection.execute(
+      `SELECT ID_EMPRESA FROM TB_EMPRESA WHERE EMAIL = :email`,
+      { email }
+    );
+
+    console.log("Resultado da busca pelo ID da empresa:", userResult.rows);
+
+    if (userResult.rows.length === 0) {
+      res.status(404).json({ message: 'Empresa não encontrada' });
+      return;
+    }
+
+    const idEmpresa = userResult.rows[0][0];
+
+    // Inserir o pagamento
+    console.log("Dados para inserção:", { idEmpresa, idPlano, nomeCartao, nrmCartao, dataValidade, cvv, total });
+
+    await connection.execute(
       `INSERT INTO TB_PAGAMENTO (ID_PAGAMENTO, ID_EMPRESA, ID_PLANO, NM_CARTAO, NRM_CARTAO, DATA_VALIDADE, CVV, TOTAL) 
-       VALUES (SEQ_PAGAMENTO.NEXTVAL, :idEmpresa, :idPlano, :nomeCartao, :nrmCartao, TO_DATE(:dataValidade, 'YYYY-MM-DD'), :cvv, :total)`,
+       VALUES (SEQ_PAGAMENTO.NEXTVAL, :idEmpresa, :idPlano, :nomeCartao, :nrmCartao, :dataValidade, :cvv, :total)`,
       { idEmpresa, idPlano, nomeCartao, nrmCartao, dataValidade, cvv, total },
       { autoCommit: true }
     );
 
     res.status(201).json({ message: 'Pagamento realizado com sucesso!' });
   } catch (err) {
+    console.error("Erro durante a operação:", err.message, err.stack);
+    res.status(500).json({ message: 'Erro ao realizar pagamento', error: err.message });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+        console.log("Conexão com o banco de dados fechada.");
+      } catch (err) {
+        console.error("Erro ao fechar a conexão:", err);
+      }
+    }
+  }
+});
+
+// Endpoint para redefinir senha
+app.update('/resetPassword', async (req, res) => {
+  const { email, newPassword } = req.body;
+  let connection;
+
+  try {
+    connection = await connect();
+
+    // Verificar se o e-mail existe no banco de dados
+    const userResult = await connection.execute(
+      `SELECT ID_EMPRESA FROM TB_EMPRESA WHERE EMAIL = :email`,
+      { email }
+    );
+
+    if (userResult.rows.length === 0) {
+      res.status(404).json({ message: 'E-mail não encontrado' });
+      return;
+    }
+
+    // Atualizar a senha no banco de dados
+    await connection.execute(
+      `UPDATE TB_EMPRESA SET SENHA = :newPassword WHERE EMAIL = :email`,
+      { email, newPassword },
+      { autoCommit: true }
+    );
+
+    res.status(200).json({ message: 'Senha redefinida com sucesso!' });
+  } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Erro ao realizar pagamento' });
+    res.status(500).json({ message: 'Erro ao redefinir senha' });
   } finally {
     if (connection) {
       try {
@@ -109,6 +175,8 @@ app.post('/finalizarPagamento', async (req, res) => {
     }
   }
 });
+
+
 
 
 app.listen(port, '0.0.0.0', () => {

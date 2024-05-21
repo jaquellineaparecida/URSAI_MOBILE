@@ -7,7 +7,7 @@ import Conheca from './pages/know';
 import Cadastro from './pages/cadastro';
 import PlanCh from './pages/noPlan';
 import Pagamento from './pages/pagamento';
-import loginPlano from './pages/loginPlan';
+import LoginPlano from './pages/loginPlan';
 
 const Stack = createStackNavigator();
 
@@ -22,7 +22,7 @@ const App = () => {
         <Stack.Screen name="Cadastro" component={Cadastro} options={{ headerShown: false }}/>
         <Stack.Screen name="PlanCh" component={PlanCh} options={{ headerShown: false }}/>
         <Stack.Screen name="Pagamento" component={Pagamento} options={{ headerShown: false }}/>
-        <Stack.Screen name="loginPlano" component={loginPlano} options={{ headerShown: false }}/>
+        <Stack.Screen name="LoginPlano" component={LoginPlano} options={{ headerShown: false }}/>
       </Stack.Navigator>
     </NavigationContainer>
   );
